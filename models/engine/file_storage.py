@@ -24,15 +24,16 @@ class FileStorage:
 
     def all(self, cls=None):
         """Returns a dictionary of models currently in storage"""
-        if cls is None:
-            return self.__objects
+        dic_print = {}
+        if clss:
+            className = clss.__name__
+            for key, val in FileStorage.__objects.items():
+                if key.split('.')[0] == className:
+                    print_dict[key] = val
+            return dic_print
         else:
-            filtered_dict = {}
-            for key, value in self.__objects.items():
-                if type(value) is cls:
-                    filtered_dict[key] = value
-            return filtered_dict
-
+            return FileStorage.__objects
+    
     def delete(self, obj=None):
         """Removes an object from the storage dictionary"""
         if obj is not None:
@@ -48,21 +49,35 @@ class FileStorage:
 
     def save(self):
         """Saves storage dictionary to file"""
-        with open(self.__file_path, 'w') as file:
+        with open(self.__file_path, 'w') as fil:
             temp = {}
+            temp.update(FileStorage.__objects)
             for key, val in self.__objects.items():
                 temp[key] = val.to_dict()
-            json.dump(temp, file)
+            json.dump(temp, fil)
 
     def reload(self):
         """Loads storage dictionary from file"""
-        classes = self.model_classes
-        if os.path.isfile(self.__file_path):
+        from models.base_model import BaseModel
+        from models.user import User
+        from models.place import Place
+        from models.state import State
+        from models.city import City
+        from models.amenity import Amenity
+        from models.review import Review
+        classes = {
+                    'BaseModel': BaseModel, 'User': User, 'Place': Place,
+                    'State': State, 'City': City, 'Amenity': Amenity,
+                    'Review': Review
+                  }
+        try:
             temp = {}
-            with open(self.__file_path, 'r') as file:
-                temp = json.load(file)
+            with open(FileStorage.__file_path, 'r') as f:
+                temp = json.load(f)
                 for key, val in temp.items():
                     self.all()[key] = classes[val['__class__']](**val)
+        except FileNotFoundError:
+            pass
 
     def close(self):
         """Closes the storage engine."""
