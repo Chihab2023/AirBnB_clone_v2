@@ -33,7 +33,7 @@ class FileStorage:
             return dic_print
         else:
             return FileStorage.__objects
-    
+
     def delete(self, obj=None):
         """Removes an object from the storage dictionary"""
         if obj is not None:
